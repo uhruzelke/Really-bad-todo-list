@@ -1,0 +1,6 @@
+  .git
+  ★ src
+  └  ★ main.rs
+   ★ .gitignore
+  󰌾 ★ Cargo.lock
+   ★ Cargo.toml
