@@ -12,13 +12,15 @@ struct ToDoApp{
     new_todo: String,
     todos:Vec<ToDo>,
     currentl_edeting:Option<usize>,
-    currentl_edeting_test:String
+    currentl_edeting_test:String,
+    current_to_do_list:String,
+    todo_listStings:Vec<String>
 }
-
 #[derive(Clone)]
 struct ToDo{
     done: bool,
-    description: String
+    description: String,
+    on_to_do_list:String
 }
 #[derive(Clone,Debug)]
 enum Message{
@@ -29,9 +31,8 @@ enum Message{
     InputEditingChanged(String),
     ClearAll,
     EditTodo(usize),
-    DoneEditing
-
-
+    DoneEditing,
+    ChangeToD0List(String),
 }
 
 
@@ -39,43 +40,50 @@ impl ToDoApp {
     fn update(&mut self,message:Message){
         match message {
             Message::ToggleToDo(t) => {
-                                        if let Some(todo) = self.todos.get_mut(t){
-                                            todo.done = ! todo.done;
+                                                if let Some(todo) = self.todos.get_mut(t){
+                                                    todo.done = ! todo.done;
 
-                                        }
-                                            },
+                                                }
+                                                    },
             Message::DeleatToDo(t) => {
-                                                self.todos.remove(t);
-                                            },
+                                                        self.todos.remove(t);
+                                                    },
             Message::AddToDo => {
-                                        if !self.new_todo.is_empty(){
-                                                    let description = self.new_todo.clone();
-                                                    self.new_todo.clear();
-                                                    self.todos.push(ToDo { done: false, description });
-                                        };
-                                             },
+                                                if !self.new_todo.is_empty(){
+                                                            let description = self.new_todo.clone();
+                                                            self.new_todo.clear();
+                                                            if !self.todo_listStings.contains(&self.current_to_do_list){
+                                                                self.todo_listStings.push(self.current_to_do_list.clone());
+                                                            }
+                                                            self.todos.push(ToDo { done: false, description,on_to_do_list:self.current_to_do_list.clone() });
+                                                };
+                                                     },
             Message::InputChanged(new_text) => {
-                                        self.new_todo = new_text;
-                                    },
+                                                self.new_todo = new_text;
+                                            },
             Message::ClearAll => {
-                                self.todos.clear();
-                            },
+                                        self.todos.clear();
+                                    },
             Message::EditTodo(e) => {
-                self.currentl_edeting_test.clear();
-                        self.currentl_edeting = Some(e)
-                    }
+                        self.currentl_edeting_test.clear();
+                                self.currentl_edeting = Some(e)
+                            }
             Message::DoneEditing =>{
-                        if let Some(todo) = self.todos.get_mut(self.currentl_edeting.unwrap()){
-                            todo.description = self.currentl_edeting_test.clone();
-                        }
-                        self.currentl_edeting = None;
-                    },
+                                if let Some(todo) = self.todos.get_mut(self.currentl_edeting.unwrap()){
+                                    todo.description = self.currentl_edeting_test.clone();
+                                }
+                                self.currentl_edeting = None;
+                            },
             Message::InputEditingChanged(t) => {
-                self.currentl_edeting_test = t;
+                        self.currentl_edeting_test = t;
+                    },
+            Message::ChangeToD0List(t) => {
+                self.current_to_do_list =t;
             },
         }
     }
     fn view(&self) -> Element<Message>{
+        let cahnge_curr_todo_list:TextInput<Message> = text_input(&self.todo_listStings.clone().join(" | "), &self.current_to_do_list).on_input(Message::ChangeToD0List);
         let add_todo_filed:TextInput<Message> = text_input("new todo here", &self.new_todo).on_input(Message::InputChanged).on_submit(Message::AddToDo);
         let add_todo_button = button("add todo").on_press(Message::AddToDo);
         let clar_all_button:Button<Message> = button("delat all todo").on_press(Message::ClearAll);
@@ -84,6 +92,7 @@ impl ToDoApp {
             self.todos
             .iter()
             .enumerate()
+            .filter(|x| x.1.on_to_do_list == self.current_to_do_list)
             .fold(column![].spacing(10), |column, (i, todo)| {
                 column.push(
                 row![
@@ -105,7 +114,7 @@ impl ToDoApp {
 
 
         }
-        column![top_input,todos].padding(20).spacing(10).into()
+        column![cahnge_curr_todo_list,top_input,todos].padding(20).spacing(10).into()
     }
     
 }
